@@ -1,149 +1,148 @@
 package com.example.milsabores.ui.screen
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.milsabores.R
-import com.example.milsabores.model.Producto
+import com.example.milsabores.data.Carrito // Asegúrate de que esta clase Carrito exista
 import com.example.milsabores.viewmodel.CarritoViewModel
 import com.example.milsabores.viewmodel.LoginViewModel
 import com.example.milsabores.viewmodel.ProductoViewModel
+// Importaciones necesarias para la vista del carrito
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CatalogoScreen(
+fun CarritoScreen(
+    // Mantenemos la firma de NavHost, aunque solo usaremos carritoViewModel y navController
     viewModel: ProductoViewModel,
     carritoViewModel: CarritoViewModel,
     navController: NavController? = null,
     loginViewModel: LoginViewModel
 ) {
-    val productos by viewModel.productos.collectAsState()
-    val usuario by loginViewModel.usuarioSesion.collectAsState()
+    // 1. OBTENER DATOS CORRECTOS: Usamos el CarritoViewModel para la lista y el total
+    val itemsCarrito by carritoViewModel.itemsCarrito.collectAsState()
+    val totalCarrito by carritoViewModel.totalCarrito.collectAsState()
 
     Scaffold(
-        floatingActionButton = {
-            if (usuario != null) {
-                FloatingActionButton(onClick = { navController?.navigate("carrito") }) {
-                    Icon(Icons.Default.ShoppingCart, contentDescription = "Carrito de compras")
-                }
-            }
-        }
-    ) {
-        Box(
-            modifier = Modifier.fillMaxSize().padding(it)
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.portada2),
-                contentDescription = "Fondo del catálogo",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .alpha(0.3f)
-            )
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(WindowInsets.safeDrawing.asPaddingValues())
-                    .padding(8.dp), // margen interno adicional
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    contentPadding = PaddingValues(8.dp),
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                ) {
-                    items(productos) { producto ->
-                        ProductCard(
-                            producto = producto,
-                            carritoViewModel = carritoViewModel,
-                            isLoggedIn = usuario != null
-                        )
+        topBar = {
+            TopAppBar(
+                title = { Text("Mi Carrito de Compras") },
+                navigationIcon = {
+                    IconButton(onClick = { navController?.popBackStack() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver al catálogo")
                     }
+                }
+            )
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            if (itemsCarrito.isEmpty()) {
+                Text(
+                    text = "El carrito está vacío. ¡Añade algo del catálogo!",
+                    modifier = Modifier.padding(24.dp),
+                    style = MaterialTheme.typography.titleMedium
+                )
+            } else {
+                LazyColumn(
+                    modifier = Modifier.weight(1f),
+                    contentPadding = PaddingValues(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    itemsIndexed(itemsCarrito, key = { index, item -> "${item.nombre}-$index" }) { index, item ->
+                        ItemCarritoCard(item, carritoViewModel)
+                    }
+                }
+
+                // Resumen del total y botón de pago
+                Divider(Modifier.fillMaxWidth())
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Total:",
+                        style = MaterialTheme.typography.headlineSmall
+                    )
+                    Text(
+                        text = "$${totalCarrito}",
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+
+                Button(
+                    onClick = { /* Lógica de pago */ },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 16.dp),
+                    enabled = totalCarrito > 0
+                ) {
+                    Text("Finalizar Compra")
                 }
             }
         }
     }
 }
 
+// Componente para dibujar la tarjeta individual del ítem del carrito
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProductCard(producto: Producto, carritoViewModel: CarritoViewModel, isLoggedIn: Boolean) {
+fun ItemCarritoCard(item: Carrito, carritoViewModel: CarritoViewModel) {
     Card(
-        modifier = Modifier
-            .padding(8.dp)
-            .fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(4.dp)
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(2.dp)
     ) {
-        Column {
-            if (producto.imagen.startsWith("http")) {
-                coil.compose.AsyncImage(
-                    model = producto.imagen,
-                    contentDescription = producto.nombre,
-                    modifier = Modifier
-                        .height(150.dp)
-                        .fillMaxWidth(),
-                    contentScale = androidx.compose.ui.layout.ContentScale.Crop
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Información del Producto
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = item.nombre, style = MaterialTheme.typography.titleMedium)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Cantidad: ${item.cantidad}",
+                    style = MaterialTheme.typography.bodyMedium
                 )
-            } else {
-                val context = LocalContext.current
-
-                val imageName = if (producto.imagen.isNotEmpty()) {
-                    producto.imagen.substringAfterLast('/').substringBeforeLast('.')
-                } else {
-                    "placeholder"
-                }
-
-                val imageRes = remember(producto.imagen) {
-                    val resourceId = context.resources.getIdentifier(
-                        imageName,
-                        "drawable",
-                        context.packageName
-                    )
-                    if (resourceId == 0) R.drawable.ic_launcher_background else resourceId
-                }
-
-                Image(
-                    painter = painterResource(id = imageRes),
-                    contentDescription = producto.nombre,
-                    modifier = Modifier
-                        .height(150.dp)
-                        .fillMaxWidth(),
-                    contentScale = ContentScale.Crop
+                Text(
+                    text = "$${item.precio * item.cantidad}",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.secondary
                 )
             }
 
-            Text(
-                text = producto.nombre,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(8.dp)
-            )
-            Text(
-                text = "$${producto.precio}",
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-            )
-            Button(
-                onClick = { carritoViewModel.agregarProducto(producto) },
-                enabled = isLoggedIn
+            // Botón de Eliminar
+            IconButton(
+                onClick = { carritoViewModel.eliminarProducto(item) },
+                modifier = Modifier.size(40.dp)
             ) {
-                Text("Agregar al carrito")
+                Icon(
+                    Icons.Default.Delete,
+                    contentDescription = "Eliminar",
+                    tint = MaterialTheme.colorScheme.error
+                )
             }
         }
     }

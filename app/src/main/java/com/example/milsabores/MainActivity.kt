@@ -93,7 +93,12 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable("carrito") {
-                             CarritoScreen(carritoViewModel, navController)
+                            CarritoScreen(
+                                productoViewModel,
+                                carritoViewModel,
+                                navController,
+                                loginViewModel
+                            )
                         }
 
                         // Unifiqué tus rutas de admin a una sola ("admin")
