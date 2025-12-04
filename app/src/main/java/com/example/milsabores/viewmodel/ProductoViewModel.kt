@@ -21,4 +21,5 @@ class ProductoViewModel(private val productoRepository: ProductoRepository) : Vi
             _productos.value = productoRepository.obtenerProductos()
         }
     }
+
 }

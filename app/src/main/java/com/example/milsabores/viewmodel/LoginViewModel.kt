@@ -2,13 +2,19 @@ package com.example.milsabores.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.milsabores.data.UsuarioDao
+import com.example.milsabores.data.repository.UsuarioRepository
 import com.example.milsabores.model.Usuario
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class LoginViewModel(private val usuarioDao: UsuarioDao) : ViewModel() {
+class LoginViewModel(private val usuarioRepository: UsuarioRepository) : ViewModel() {
+
+    init {
+        viewModelScope.launch {
+            usuarioRepository.inicializarAdmin()
+        }
+    }
 
     private val _loginState = MutableStateFlow<LoginState>(LoginState.Idle)
     val loginState = _loginState.asStateFlow()
@@ -19,7 +25,7 @@ class LoginViewModel(private val usuarioDao: UsuarioDao) : ViewModel() {
     fun login(correo: String, contrasena: String) {
         viewModelScope.launch {
             _loginState.value = LoginState.Loading
-            val usuario = usuarioDao.login(correo, contrasena)
+            val usuario = usuarioRepository.login(correo, contrasena)
             if (usuario != null) {
                 _loginState.value = LoginState.Success(usuario)
                 _usuarioSesion.value = usuario

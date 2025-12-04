@@ -5,18 +5,25 @@ import com.example.milsabores.model.Usuario
 
 @Dao
 interface UsuarioDao {
-    @Insert
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertarUsuario(usuario: Usuario)
-
-    @Query("SELECT * FROM Usuario")
-    suspend fun obtenerUsuarios(): List<Usuario>
-
-    @Query("SELECT * FROM Usuario WHERE id = :id")
-    suspend fun obtenerUsuarioPorId(id: Int): Usuario?
 
     @Update
     suspend fun actualizarUsuario(usuario: Usuario)
 
-    @Query("SELECT * FROM Usuario WHERE correo = :correo AND contrasena = :contrasena LIMIT 1")
+    @Delete
+    suspend fun eliminarUsuario(usuario: Usuario)
+
+    @Query("SELECT * FROM Usuario WHERE correo = :correo AND contrasena = :contrasena")
     suspend fun login(correo: String, contrasena: String): Usuario?
+
+    @Query("SELECT * FROM Usuario WHERE id = :id")
+    suspend fun obtenerUsuarioPorId(id: Int): Usuario?
+
+    @Query("SELECT * FROM Usuario WHERE correo = :correo LIMIT 1")
+    suspend fun obtenerUsuarioPorCorreo(correo: String): Usuario?
+
+    @Query("SELECT * FROM Usuario")
+    suspend fun obtenerUsuarios(): List<Usuario>
 }

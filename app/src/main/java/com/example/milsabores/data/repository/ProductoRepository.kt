@@ -1,9 +1,38 @@
 package com.example.milsabores.data.repository
 
 import com.example.milsabores.data.ProductoDao
+import com.example.milsabores.data.conexion.RetrofitClient
 import com.example.milsabores.model.Producto
+import kotlinx.coroutines.flow.Flow
 
 class ProductoRepository(private val productoDao: ProductoDao) {
+
+    val productosStream: Flow<List<Producto>> = productoDao.obtenerProductosFlow()
+
+    suspend fun insertarProducto(producto: Producto) = productoDao.insertar(producto)
+
+    suspend fun actualizarProducto(producto: Producto) = productoDao.actualizar(producto)
+
+    suspend fun eliminarProducto(producto: Producto) = productoDao.eliminar(producto)
+
+    private suspend fun obtenerProductosDeApi(): List<Producto> {
+        return try {
+            val respuesta = RetrofitClient.api.obtenerPostres()
+            respuesta.listaPostres.map { meal ->
+                Producto(
+                    id = 0,
+                    nombre = meal.nombre,
+                    descripcion = "Delicia internacional importada de nuestro catálogo online.",
+                    categoria = "Internacional",
+                    precio = (5000..12000).random(),
+                    imagen = meal.imagenUrl
+                )
+            }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
     suspend fun obtenerProductos(): List<Producto> {
         if (productoDao.obtenerProductos().isEmpty()) {
             productoDao.insertar(Producto(nombre = "Torta Cuadrada de Chocolate", descripcion = "Deliciosa torta de chocolate con capas de ganache y un toque de avellanas. Personalizable con mensajes especiales.", categoria = "Tortas Cuadradas", precio = 45000, imagen = "cuadrada_chocolate.jpg"))
@@ -22,6 +51,13 @@ class ProductoRepository(private val productoDao: ProductoDao) {
             productoDao.insertar(Producto(nombre = "Pan Sin Gluten", descripcion = "Suave y esponjoso, ideal para sándwiches o para acompañar cualquier comida.", categoria = "Productos Sin Gluten", precio = 3500, imagen = "pan_sin_gluten.jpg"))
             productoDao.insertar(Producto(nombre = "Torta Vegana de Chocolate", descripcion = "Torta de chocolate húmeda y deliciosa, hecha sin productos de origen animal, perfecta para veganos.", categoria = "Productos Veganos", precio = 50000, imagen = "vegana_chocolate.jpg"))
             productoDao.insertar(Producto(nombre = "Galletas Veganas de Avena", descripcion = "Crujientes y sabrosas, estas galletas son una excelente opción para un snack saludable y vegano.", categoria = "Productos Veganos", precio = 4500, imagen = "galleta_vegana_avena.jpg"))
+        }
+
+        val productosApi = obtenerProductosDeApi()
+
+        // Recorremos la lista de la API y los guardamos en tu base de datos
+        productosApi.forEach { productoApi ->
+            productoDao.insertar(productoApi)
         }
         return productoDao.obtenerProductos()
 

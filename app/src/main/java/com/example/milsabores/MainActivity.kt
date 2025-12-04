@@ -11,11 +11,12 @@ import androidx.compose.material3.Surface
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.room.Room
 import com.example.milsabores.data.MilSaboresDataBase
 import com.example.milsabores.data.repository.ProductoRepository
+import com.example.milsabores.data.repository.UsuarioRepository // <-- Importación necesaria
 import com.example.milsabores.ui.screen.*
 import com.example.milsabores.ui.theme.MilSaboresTheme
+import com.example.milsabores.viewmodel.AdminViewModel
 import com.example.milsabores.viewmodel.LoginViewModel
 import com.example.milsabores.viewmodel.ProductoViewModel
 import com.example.milsabores.viewmodel.UsuarioViewModel
@@ -33,21 +34,22 @@ class MainActivity : ComponentActivity() {
                 Surface(color = MaterialTheme.colorScheme.background) {
 
                     val context = LocalContext.current
+
+                    // 1. Manejo de la Base de Datos: Usar el Singleton para aplicar migraciones
                     val dataBase = remember {
-                        Room.databaseBuilder(
-                            context,
-                            MilSaboresDataBase::class.java,
-                            "milsabores.db"
-                        )
-                            .fallbackToDestructiveMigration()
-                            .build()
+                        MilSaboresDataBase.getDatabase(context)
                     }
 
-                    // Instancia de ViewModels
-                    val usuarioViewModel = remember { UsuarioViewModel(dataBase.usuarioDao()) }
-                    val loginViewModel = remember { LoginViewModel(dataBase.usuarioDao()) }
+                    // 2. Instancia de Repositorios (requieren DAOs)
+                    // ESTO RESUELVE LOS ERRORES DE DEPENDENCIA
+                    val usuarioRepository = remember { UsuarioRepository(dataBase.usuarioDao()) }
                     val productoRepository = remember { ProductoRepository(dataBase.productoDao()) }
+
+                    // 3. Instancia de ViewModels (Ahora reciben Repositorios)
+                    val usuarioViewModel = remember { UsuarioViewModel(usuarioRepository) } // CORREGIDO
+                    val loginViewModel = remember { LoginViewModel(usuarioRepository) }     // CORREGIDO
                     val productoViewModel = remember { ProductoViewModel(productoRepository) }
+                    val adminViewModel = remember { AdminViewModel(productoRepository) }
 
                     val navController = rememberNavController()
 
@@ -77,6 +79,23 @@ class MainActivity : ComponentActivity() {
                                 navController = navController
                             )
                         }
+
+                        // Ruta para el botón de Admin
+                        composable(route = "panelAdmin") {
+                            AdminScreen(
+                                viewModel = adminViewModel,
+                                navController = navController
+                            )
+                        }
+
+                        // Ruta antigua
+                        composable(route = "admin") {
+                            AdminScreen(
+                                navController = navController,
+                                viewModel = adminViewModel
+                            )
+                        }
+
                         composable(
                             route = "perfil/{usuarioId}"
                         ) { backStackEntry ->

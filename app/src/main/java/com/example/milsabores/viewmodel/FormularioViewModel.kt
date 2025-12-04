@@ -12,11 +12,17 @@ class FormularioViewModel(private val usuarioDao: UsuarioDao) : ViewModel() {
     private val _usuarios = MutableStateFlow<List<Usuario>>(emptyList())
     val usuario = _usuarios.asStateFlow()
 
+    // FormularioViewModel.kt (Opción A: Asignar fijo)
     fun agregarUsuarios(nombre: String, correo: String, contrasena: String) {
-        val nuevoUsuario = Usuario(nombre = nombre, correo = correo, contrasena = contrasena)
+        val nuevoUsuario = Usuario(
+            nombre = nombre,
+            correo = correo,
+            contrasena = contrasena,
+            tipoUsuario = "Cliente"
+        )
         viewModelScope.launch {
             usuarioDao.insertarUsuario(nuevoUsuario)
-            _usuarios.value = usuarioDao.obtenerUsuarios()
+            // ...
         }
     }
 

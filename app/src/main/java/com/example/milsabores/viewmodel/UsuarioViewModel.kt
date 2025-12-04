@@ -2,13 +2,14 @@ package com.example.milsabores.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.milsabores.data.UsuarioDao
+import com.example.milsabores.data.repository.UsuarioRepository // Importación corregida
 import com.example.milsabores.model.Usuario
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class UsuarioViewModel(private val usuarioDao: UsuarioDao) : ViewModel() {
+// CAMBIO CRÍTICO: Ahora recibe el Repositorio
+class UsuarioViewModel(private val usuarioRepository: UsuarioRepository) : ViewModel() {
 
     // Estado del registro
     private val _registroState = MutableStateFlow<RegistroState>(RegistroState.Idle)
@@ -18,8 +19,8 @@ class UsuarioViewModel(private val usuarioDao: UsuarioDao) : ViewModel() {
     fun registrarUsuario(nombre: String, correo: String, contrasena: String) {
         viewModelScope.launch {
             try {
-                val nuevoUsuario = Usuario(nombre = nombre, correo = correo, contrasena = contrasena)
-                usuarioDao.insertarUsuario(nuevoUsuario)
+
+                usuarioRepository.registrarUsuario(nombre, correo, contrasena)
                 _registroState.value = RegistroState.Success
             } catch (e: Exception) {
                 _registroState.value = RegistroState.Error(e.message ?: "Error desconocido")
@@ -30,14 +31,15 @@ class UsuarioViewModel(private val usuarioDao: UsuarioDao) : ViewModel() {
     // Actualizar foto de perfil
     fun actualizarFotoPerfil(usuario: Usuario, fotoUri: String) {
         viewModelScope.launch {
-            val actualizado = usuario.copy(fotoUri = fotoUri)
-            usuarioDao.actualizarUsuario(actualizado)
+
+            usuarioRepository.actualizarFotoPerfil(usuario, fotoUri)
         }
     }
 
     // Obtener usuario por ID
     suspend fun obtenerUsuarioPorId(id: Int): Usuario? {
-        return usuarioDao.obtenerUsuarioPorId(id)
+
+        return usuarioRepository.obtenerUsuarioPorId(id)
     }
 }
 

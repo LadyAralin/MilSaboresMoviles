@@ -81,7 +81,6 @@ fun InicioScreen(navController: NavController, loginViewModel: LoginViewModel) {
                 }
             }
 
-
             Spacer(modifier = Modifier.height(16.dp))
 
             if (usuarioSesion == null) {
@@ -98,6 +97,22 @@ fun InicioScreen(navController: NavController, loginViewModel: LoginViewModel) {
                 }
 
             } else {
+
+                if (usuarioSesion!!.tipoUsuario == "Admin") {
+                    Button(
+                        onClick = { navController.navigate("panelAdmin") },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF7b3f00),
+                            contentColor = Color(0xFFF4E6D4)
+                        ),
+                        modifier = Modifier
+                            .border(2.dp, Color(0xFF7b3f00), CircleShape),
+                    ) {
+                        Text("Panel de Administración")
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
                 Button(
                     onClick = { navController.navigate("perfil/${usuarioSesion!!.id}") },
                     colors = ButtonDefaults.buttonColors(
@@ -138,6 +153,4 @@ fun InicioScreen(navController: NavController, loginViewModel: LoginViewModel) {
             }
         }
     }
-
-
 }

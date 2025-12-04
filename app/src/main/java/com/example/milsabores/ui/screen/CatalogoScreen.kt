@@ -8,6 +8,8 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -45,7 +47,7 @@ fun CatalogoScreen(viewModel: ProductoViewModel, navController: NavController? =
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(WindowInsets.safeDrawing.asPaddingValues()) // ← evita superposición con la barra
+            .padding(WindowInsets.safeDrawing.asPaddingValues())
             .padding(8.dp), // margen interno adicional
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -56,7 +58,7 @@ fun CatalogoScreen(viewModel: ProductoViewModel, navController: NavController? =
             columns = GridCells.Fixed(2),
             contentPadding = PaddingValues(8.dp),
             modifier = Modifier
-                .weight(1f) // ocupa todo el espacio disponible arriba
+                .weight(1f)
                 .fillMaxWidth()
         ) {
             items(productos) { producto ->
@@ -64,7 +66,6 @@ fun CatalogoScreen(viewModel: ProductoViewModel, navController: NavController? =
             }
         }
 
-        // --- Botón Volver (abajo, centrado) ---
         Button(
             onClick = { navController?.popBackStack() },
             modifier = Modifier
@@ -81,40 +82,58 @@ fun CatalogoScreen(viewModel: ProductoViewModel, navController: NavController? =
 
 @Composable
 fun ProductoCard(producto: Producto) {
-    val context = LocalContext.current
-
-    // Extrae el nombre del archivo de la ruta
-    val imageName = producto.imagen.substringAfterLast('/').substringBeforeLast('.')
-
-    val imageRes = remember(producto.imagen) {
-        val resourceId = context.resources.getIdentifier(imageName, "drawable", context.packageName)
-        if (resourceId == 0) R.drawable.ic_launcher_background else resourceId
-    }
-
     Card(
         modifier = Modifier
             .padding(8.dp)
-            .fillMaxWidth()
+            .fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(4.dp)
     ) {
         Column {
-            Image(
-                painter = painterResource(id = imageRes),
-                contentDescription = producto.nombre,
-                modifier = Modifier
-                    .height(150.dp)
-                    .fillMaxWidth()
-            )
+            if (producto.imagen.startsWith("http")) {
+                coil.compose.AsyncImage(
+                    model = producto.imagen,
+                    contentDescription = producto.nombre,
+                    modifier = Modifier
+                        .height(150.dp)
+                        .fillMaxWidth(),
+                    contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                )
+            } else {
+                val context = androidx.compose.ui.platform.LocalContext.current
+
+                val imageName = if (producto.imagen.isNotEmpty()) {
+                    producto.imagen.substringAfterLast('/').substringBeforeLast('.')
+                } else {
+                    "placeholder"
+                }
+
+                val imageRes = remember(producto.imagen) {
+                    val resourceId = context.resources.getIdentifier(
+                        imageName,
+                        "drawable",
+                        context.packageName
+                    )
+                    if (resourceId == 0) com.example.milsabores.R.drawable.ic_launcher_background else resourceId
+                }
+
+                androidx.compose.foundation.Image(
+                    painter = androidx.compose.ui.res.painterResource(id = imageRes),
+                    contentDescription = producto.nombre,
+                    modifier = Modifier
+                        .height(150.dp)
+                        .fillMaxWidth(),
+                    contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                )
+            }
 
             Text(
                 text = producto.nombre,
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp,
+                style = MaterialTheme.typography.titleMedium, // Ajusta el estilo si prefieres
                 modifier = Modifier.padding(8.dp)
             )
-
             Text(
                 text = "$${producto.precio}",
-                fontSize = 16.sp,
+                style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
             )
         }
