@@ -35,15 +35,12 @@ fun CatalogoScreen(
     loginViewModel: LoginViewModel,     // Agregado del compañero
     navController: NavController? = null
 ) {
-    // Estados combinados
     val productos by viewModel.productos.collectAsState()
     val searchText by viewModel.searchText.collectAsState() // Tuyo
-    val usuario by loginViewModel.usuarioSesion.collectAsState() // Del compañero
+    val usuario by loginViewModel.usuarioSesion.collectAsState()
 
-    // Usamos Scaffold (del compañero) para tener el Botón Flotante del Carrito
     Scaffold(
         floatingActionButton = {
-            // Solo muestra el carrito si hay usuario logueado
             if (usuario != null) {
                 FloatingActionButton(
                     onClick = { navController?.navigate("carrito") },
@@ -58,9 +55,8 @@ fun CatalogoScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues) // Importante para respetar el Scaffold
+                .padding(paddingValues)
         ) {
-            // Fondo (Común en ambos)
             Image(
                 painter = painterResource(id = R.drawable.portada2),
                 contentDescription = "Fondo del catálogo",
@@ -77,8 +73,6 @@ fun CatalogoScreen(
                     .padding(8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-
-                // Barra de Búsqueda (Recuperada porque tenías la variable searchText)
                 OutlinedTextField(
                     value = searchText,
                     onValueChange = { viewModel.onSearchTextChange(it) },
@@ -90,25 +84,22 @@ fun CatalogoScreen(
                         unfocusedContainerColor = Color.White.copy(alpha = 0.8f)
                     )
                 )
-
-                // Grilla de Productos
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
                     contentPadding = PaddingValues(8.dp),
                     modifier = Modifier
-                        .weight(1f) // Ocupa el espacio disponible
+                        .weight(1f)
                         .fillMaxWidth()
                 ) {
                     items(productos) { producto ->
                         ProductoCard(
                             producto = producto,
-                            carritoViewModel = carritoViewModel, // Pasamos el ViewModel del carrito
-                            isLoggedIn = usuario != null         // Pasamos si está logueado
+                            carritoViewModel = carritoViewModel,
+                            isLoggedIn = usuario != null
                         )
                     }
                 }
 
-                // Botón Volver (Tuyo)
                 Button(
                     onClick = { navController?.popBackStack() },
                     modifier = Modifier
@@ -128,8 +119,8 @@ fun CatalogoScreen(
 @Composable
 fun ProductoCard(
     producto: Producto,
-    carritoViewModel: CarritoViewModel, // Nuevo parámetro
-    isLoggedIn: Boolean                 // Nuevo parámetro
+    carritoViewModel: CarritoViewModel,
+    isLoggedIn: Boolean
 ) {
     Card(
         modifier = Modifier
@@ -149,7 +140,6 @@ fun ProductoCard(
                     error = painterResource(id = R.drawable.ic_launcher_background)
                 )
             } else {
-                // Lógica legacy para recursos drawable
                 val context = LocalContext.current
                 val imageName = if (producto.imagen.isNotEmpty()) {
                     producto.imagen.substringAfterLast('/').substringBeforeLast('.')
@@ -167,7 +157,7 @@ fun ProductoCard(
                     contentScale = ContentScale.Crop
                 )
             }
-            // -------------------------------------
+
 
             Text(
                 text = producto.nombre,
@@ -180,8 +170,6 @@ fun ProductoCard(
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
             )
 
-            // --- BOTÓN DEL COMPAÑERO ---
-            // Botón para agregar al carrito (Solo si está logueado)
             Button(
                 onClick = { carritoViewModel.agregarProducto(producto) },
                 enabled = isLoggedIn, // Se bloquea si no hay sesión

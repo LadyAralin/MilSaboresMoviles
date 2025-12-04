@@ -19,7 +19,10 @@ import com.example.milsabores.data.Carrito // Asegúrate de que esta clase Carri
 import com.example.milsabores.viewmodel.CarritoViewModel
 import com.example.milsabores.viewmodel.LoginViewModel
 import com.example.milsabores.viewmodel.ProductoViewModel
-// Importaciones necesarias para la vista del carrito
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Remove
+
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -118,14 +121,29 @@ fun ItemCarritoCard(item: Carrito, carritoViewModel: CarritoViewModel) {
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Información del Producto
+            // Info del producto
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = item.nombre, style = MaterialTheme.typography.titleMedium)
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Cantidad: ${item.cantidad}",
-                    style = MaterialTheme.typography.bodyMedium
-                )
+
+                // 🔹 Fila con botones - cantidad +
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = { carritoViewModel.disminuirCantidad(item) }) {
+                        Icon(Icons.Default.Remove, contentDescription = "Disminuir cantidad")
+                    }
+
+                    Text(
+                        text = "Cantidad: ${item.cantidad}",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+
+                    IconButton(onClick = { carritoViewModel.aumentarCantidad(item) }) {
+                        Icon(Icons.Default.Add, contentDescription = "Aumentar cantidad")
+                    }
+                }
+
                 Text(
                     text = "$${item.precio * item.cantidad}",
                     style = MaterialTheme.typography.titleSmall,
@@ -133,7 +151,7 @@ fun ItemCarritoCard(item: Carrito, carritoViewModel: CarritoViewModel) {
                 )
             }
 
-            // Botón de Eliminar
+            // Botón para eliminar todo el producto del carrito
             IconButton(
                 onClick = { carritoViewModel.eliminarProducto(item) },
                 modifier = Modifier.size(40.dp)

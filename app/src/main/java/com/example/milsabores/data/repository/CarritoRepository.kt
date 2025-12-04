@@ -5,11 +5,8 @@ import com.example.milsabores.data.CarritoDao
 import kotlinx.coroutines.flow.Flow
 
 class CarritoRepository(private val carritoDao: CarritoDao) {
-
-    // 1. Exponemos el flujo de la base de datos
     val carritoStream: Flow<List<Carrito>> = carritoDao.obtenerCarrito()
 
-    // 2. Funciones suspendidas para insertar y borrar
     suspend fun agregarProducto(item: Carrito) {
         carritoDao.insertar(item)
     }
@@ -21,4 +18,10 @@ class CarritoRepository(private val carritoDao: CarritoDao) {
     suspend fun vaciarCarrito() {
         carritoDao.vaciarCarrito()
     }
+
+    suspend fun obtenerItemPorNombre(nombre: String): Carrito? =
+        carritoDao.obtenerItemPorNombre(nombre)
+
+    suspend fun actualizarCantidad(id: Int, cantidad: Int) =
+        carritoDao.actualizarCantidad(id, cantidad)
 }

@@ -153,7 +153,6 @@ fun ProductoFormDialog(
     onDismiss: () -> Unit,
     onConfirm: (Producto) -> Unit
 ) {
-    // Estados del formulario
     var nombre by remember { mutableStateOf(producto?.nombre ?: "") }
     var descripcion by remember { mutableStateOf(producto?.descripcion ?: "") }
     var categoria by remember { mutableStateOf(producto?.categoria ?: "") }
@@ -162,12 +161,10 @@ fun ProductoFormDialog(
 
     val context = LocalContext.current
 
-    // --- CONFIGURACIÓN DEL LANZADOR DE GALERÍA ---
     val launcherGaleria = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let {
-            // Guardamos la imagen en la carpeta de la app y obtenemos la nueva ruta
             val rutaInterna = guardarImagenProductoEnApp(context, it)
             if (rutaInterna != null) {
                 imagenUrl = rutaInterna
@@ -217,7 +214,6 @@ fun ProductoFormDialog(
                     singleLine = true
                 )
 
-                // --- SECCIÓN DE IMAGEN ---
                 Text("Imagen", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -233,8 +229,6 @@ fun ProductoFormDialog(
                         Spacer(Modifier.width(8.dp))
                         Text("Subir Foto")
                     }
-
-                    // Previsualización pequeña si hay imagen seleccionada
                     if (imagenUrl.isNotEmpty()) {
                         AsyncImage(
                             model = imagenUrl,
@@ -244,7 +238,6 @@ fun ProductoFormDialog(
                         )
                     }
                 }
-                // --- FIN SECCIÓN IMAGEN ---
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -278,11 +271,9 @@ fun ProductoFormDialog(
     }
 }
 
-// Función auxiliar para copiar la imagen seleccionada al almacenamiento interno de la app
 fun guardarImagenProductoEnApp(context: Context, uri: Uri): String? {
     return try {
         val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
-        // Creamos un nombre único para la imagen del producto (producto_TIMESTAMP.jpg)
         val nombreArchivo = "producto_${System.currentTimeMillis()}.jpg"
         val archivoDestino = File(context.filesDir, nombreArchivo)
 
@@ -292,7 +283,6 @@ fun guardarImagenProductoEnApp(context: Context, uri: Uri): String? {
         inputStream?.close()
         outputStream.close()
 
-        // Retornamos la ruta absoluta del archivo guardado
         archivoDestino.absolutePath
     } catch (e: Exception) {
         e.printStackTrace()

@@ -6,8 +6,6 @@ import com.example.milsabores.model.Producto
 import kotlinx.coroutines.flow.Flow
 
 class ProductoRepository(private val productoDao: ProductoDao) {
-
-    // Flujo principal usado por el ViewModel para obtener todos los productos en tiempo real.
     val productosStream: Flow<List<Producto>> = productoDao.obtenerProductosFlow()
 
     suspend fun insertarProducto(producto: Producto) = productoDao.insertar(producto)
@@ -16,12 +14,10 @@ class ProductoRepository(private val productoDao: ProductoDao) {
 
     suspend fun eliminarProducto(producto: Producto) = productoDao.eliminar(producto)
 
-    // Función síncrona para obtener la lista de productos (no el flujo)
     suspend fun obtenerProductos(): List<Producto> {
         return productoDao.obtenerProductos()
     }
 
-    // Lógica para obtener postres de una API externa (solo se llama en inicializarProductos)
     private suspend fun obtenerProductosDeApi(): List<Producto> {
         return try {
             val respuesta = RetrofitClient.api.obtenerPostres()
@@ -39,16 +35,8 @@ class ProductoRepository(private val productoDao: ProductoDao) {
             emptyList()
         }
     }
-
-    /**
-     * Función que realiza la inserción inicial de productos locales y de API.
-     * Es llamada SOLAMENTE por el Database Callback la primera vez que la DB es creada.
-     */
     suspend fun inicializarProductos() {
-        // Aseguramos que solo se ejecute si la base de datos está completamente vacía.
         if (productoDao.obtenerProductos().isEmpty()) {
-
-            // --- 1. INSERCIÓN DE PRODUCTOS LOCALES ---
             productoDao.insertar(Producto(nombre = "Torta Cuadrada de Chocolate", descripcion = "Deliciosa torta de chocolate con capas de ganache y un toque de avellanas. Personalizable con mensajes especiales.", categoria = "Tortas Cuadradas", precio = 45000, imagen = "cuadrada_chocolate.jpg"))
             productoDao.insertar(Producto(nombre = "Torta Cuadrada de Frutas", descripcion = "Una mezcla de frutas frescas y crema chantilly sobre un suave bizcocho de vainilla, ideal para celebraciones.", categoria = "Tortas Cuadradas", precio = 50000, imagen = "cuadrada_frutas.jpg"))
             productoDao.insertar(Producto(nombre = "Torta Circular de Vainilla", descripcion = "Bizcocho de vainilla clásico relleno con crema pastelera y cubierto con un glaseado dulce, perfecto para cualquier ocasión.", categoria = "Tortas Circulares", precio = 40000, imagen = "circular_vainilla.png"))
@@ -66,7 +54,6 @@ class ProductoRepository(private val productoDao: ProductoDao) {
             productoDao.insertar(Producto(nombre = "Torta Vegana de Chocolate", descripcion = "Torta de chocolate húmeda y deliciosa, hecha sin productos de origen animal, perfecta para veganos.", categoria = "Productos Veganos", precio = 50000, imagen = "vegana_chocolate.jpg"))
             productoDao.insertar(Producto(nombre = "Galletas Veganas de Avena", descripcion = "Crujientes y sabrosas, estas galletas son una excelente opción para un snack saludable y vegano.", categoria = "Productos Veganos", precio = 4500, imagen = "galleta_vegana_avena.jpg"))
 
-            // --- 2. INSERCIÓN DE PRODUCTOS DE LA API ---
             val productosApi = obtenerProductosDeApi()
             productosApi.forEach { productoApi ->
                 productoDao.insertar(productoApi)

@@ -28,7 +28,6 @@ import com.example.milsabores.R
 fun InicioScreen(navController: NavController, loginViewModel: LoginViewModel) {
     val usuarioSesion by loginViewModel.usuarioSesion.collectAsState()
 
-    // Usamos el Scaffold del compañero para tener la Barra Superior con Carrito
     Scaffold(
         topBar = {
             TopAppBar(
@@ -43,13 +42,11 @@ fun InicioScreen(navController: NavController, loginViewModel: LoginViewModel) {
             )
         }
     ) { padding ->
-        // Contenido principal dentro del Scaffold
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            // Imagen de Fondo
             Image(
                 painter = painterResource(id = R.drawable.portada2),
                 contentDescription = "Fondo de la pantalla de inicio",
@@ -59,7 +56,6 @@ fun InicioScreen(navController: NavController, loginViewModel: LoginViewModel) {
                     .alpha(0.7f)
             )
 
-            // Columna con Logo y Botones
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -67,8 +63,6 @@ fun InicioScreen(navController: NavController, loginViewModel: LoginViewModel) {
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-
-                // Logo
                 Box(
                     modifier = Modifier
                         .size(150.dp)
@@ -85,8 +79,6 @@ fun InicioScreen(navController: NavController, loginViewModel: LoginViewModel) {
                             .clip(CircleShape)
                     )
                 }
-
-                // Texto de Bienvenida
                 Surface(
                     color = Color(0xFFF4E6D4),
                     shape = RoundedCornerShape(size = 12.dp),
@@ -109,9 +101,7 @@ fun InicioScreen(navController: NavController, loginViewModel: LoginViewModel) {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Lógica de Botones
                 if (usuarioSesion == null) {
-                    // Botón Iniciar Sesión (Si no hay usuario)
                     Button(
                         onClick = { navController.navigate("login") },
                         colors = ButtonDefaults.buttonColors(
@@ -125,9 +115,6 @@ fun InicioScreen(navController: NavController, loginViewModel: LoginViewModel) {
                     }
 
                 } else {
-                    // Opciones si hay usuario conectado
-
-                    // --- AQUÍ INTEGRÉ TU BOTÓN DE ADMIN ---
                     if (usuarioSesion?.tipoUsuario == "Admin") {
                         Button(
                             onClick = { navController.navigate("admin") }, // Ruta corregida a "admin"
@@ -141,7 +128,6 @@ fun InicioScreen(navController: NavController, loginViewModel: LoginViewModel) {
                         }
                         Spacer(modifier = Modifier.height(8.dp))
                     }
-                    // --------------------------------------
 
                     Button(
                         onClick = { navController.navigate("perfil/${usuarioSesion!!.id}") },

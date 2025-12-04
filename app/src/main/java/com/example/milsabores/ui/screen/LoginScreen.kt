@@ -46,14 +46,12 @@ fun LoginScreen(navController: NavController, loginViewModel: LoginViewModel) {
         )
     }
 
-    // Padre con padding general
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
         contentAlignment = Alignment.Center
     ) {
-        // Cajita con fondo y bordes
         Surface(
             color = Color(0xFFF4E6D4), // color de fondo de la caja
             shape = RoundedCornerShape(12.dp), // esquinas redondeadas

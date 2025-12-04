@@ -28,7 +28,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // Ajustar teclado al aparecer
         window.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
 
         setContent {
@@ -37,31 +36,25 @@ class MainActivity : ComponentActivity() {
 
                     val context = LocalContext.current
 
-                    // 1. Base de Datos
                     val dataBase = remember {
                         MilSaboresDataBase.getDatabase(context)
                     }
 
-                    // 2. Repositorios
                     val usuarioRepository = remember { UsuarioRepository(dataBase.usuarioDao()) }
                     val productoRepository = remember { ProductoRepository(dataBase.productoDao()) }
 
-                    // --- NUEVO: Repositorio del Carrito ---
                     val carritoRepository = remember { CarritoRepository(dataBase.carritoDao()) }
 
-                    // 3. ViewModels
                     val usuarioViewModel = remember { UsuarioViewModel(usuarioRepository) }
                     val loginViewModel = remember { LoginViewModel(usuarioRepository) }
                     val productoViewModel = remember { ProductoViewModel(productoRepository) }
                     val adminViewModel = remember { AdminViewModel(productoRepository) }
 
-                    // --- NUEVO: ViewModel del Carrito ---
                     val carritoViewModel = remember { CarritoViewModel(carritoRepository) }
 
 
                     val navController = rememberNavController()
 
-                    // NavHost
                     NavHost(navController = navController, startDestination = "inicio") {
                         composable("inicio") {
                             InicioScreen(
@@ -82,12 +75,11 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // --- AQUÍ ESTABA EL ERROR: Faltaban los parámetros nuevos ---
                         composable("catalogo") {
                             CatalogoScreen(
                                 viewModel = productoViewModel,
-                                carritoViewModel = carritoViewModel, // ¡Agregado!
-                                loginViewModel = loginViewModel,     // ¡Agregado!
+                                carritoViewModel = carritoViewModel,
+                                loginViewModel = loginViewModel,
                                 navController = navController
                             )
                         }
@@ -101,7 +93,6 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // Unifiqué tus rutas de admin a una sola ("admin")
                         composable(route = "admin") {
                             AdminScreen(
                                 viewModel = adminViewModel,
@@ -109,7 +100,6 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // Ruta alternativa por si algún botón viejo llama a "panelAdmin"
                         composable(route = "panelAdmin") {
                             AdminScreen(
                                 viewModel = adminViewModel,

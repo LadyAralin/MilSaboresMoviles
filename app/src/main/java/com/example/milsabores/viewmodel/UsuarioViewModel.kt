@@ -8,14 +8,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-// CAMBIO CRÍTICO: Ahora recibe el Repositorio
 class UsuarioViewModel(private val usuarioRepository: UsuarioRepository) : ViewModel() {
 
-    // Estado del registro
     private val _registroState = MutableStateFlow<RegistroState>(RegistroState.Idle)
     val registroState = _registroState.asStateFlow()
 
-    // Registrar un nuevo usuario
     fun registrarUsuario(nombre: String, correo: String, contrasena: String) {
         viewModelScope.launch {
             try {
@@ -28,7 +25,6 @@ class UsuarioViewModel(private val usuarioRepository: UsuarioRepository) : ViewM
         }
     }
 
-    // Actualizar foto de perfil
     fun actualizarFotoPerfil(usuario: Usuario, fotoUri: String) {
         viewModelScope.launch {
 
@@ -36,14 +32,12 @@ class UsuarioViewModel(private val usuarioRepository: UsuarioRepository) : ViewM
         }
     }
 
-    // Obtener usuario por ID
     suspend fun obtenerUsuarioPorId(id: Int): Usuario? {
 
         return usuarioRepository.obtenerUsuarioPorId(id)
     }
 }
 
-// Estados para el registro
 sealed class RegistroState {
     object Idle : RegistroState()
     object Success : RegistroState()

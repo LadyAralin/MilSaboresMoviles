@@ -48,7 +48,6 @@ fun PerfilScreen(
         }
     }
 
-    // Cargar usuario por id
     LaunchedEffect(usuarioId) {
         usuario = usuarioViewModel.obtenerUsuarioPorId(usuarioId)
     }
@@ -73,7 +72,6 @@ fun PerfilScreen(
     ) {
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Foto de perfil
         Image(
             painter = rememberAsyncImagePainter(
                 model = selectedImageUri ?: usuario?.fotoUri

@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ProductoDao {
-    // Tus métodos existentes
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertar(producto: Producto)
 

@@ -9,6 +9,6 @@ data class Usuario(
     val nombre: String,
     val correo: String,
     val contrasena: String,
-    val fotoUri: String? = null, // <-- URI de la foto opcional
+    val fotoUri: String? = null,
     val tipoUsuario: String
 )
