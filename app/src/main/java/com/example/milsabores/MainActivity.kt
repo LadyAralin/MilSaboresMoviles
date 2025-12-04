@@ -12,11 +12,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.milsabores.data.MilSaboresDataBase
+import com.example.milsabores.data.repository.CarritoRepository
 import com.example.milsabores.data.repository.ProductoRepository
-import com.example.milsabores.data.repository.UsuarioRepository // <-- Importación necesaria
+import com.example.milsabores.data.repository.UsuarioRepository
 import com.example.milsabores.ui.screen.*
 import com.example.milsabores.ui.theme.MilSaboresTheme
 import com.example.milsabores.viewmodel.AdminViewModel
+import com.example.milsabores.viewmodel.CarritoViewModel
 import com.example.milsabores.viewmodel.LoginViewModel
 import com.example.milsabores.viewmodel.ProductoViewModel
 import com.example.milsabores.viewmodel.UsuarioViewModel
@@ -35,25 +37,31 @@ class MainActivity : ComponentActivity() {
 
                     val context = LocalContext.current
 
-                    // 1. Manejo de la Base de Datos: Usar el Singleton para aplicar migraciones
+                    // 1. Base de Datos
                     val dataBase = remember {
                         MilSaboresDataBase.getDatabase(context)
                     }
 
-                    // 2. Instancia de Repositorios (requieren DAOs)
-                    // ESTO RESUELVE LOS ERRORES DE DEPENDENCIA
+                    // 2. Repositorios
                     val usuarioRepository = remember { UsuarioRepository(dataBase.usuarioDao()) }
                     val productoRepository = remember { ProductoRepository(dataBase.productoDao()) }
 
-                    // 3. Instancia de ViewModels (Ahora reciben Repositorios)
-                    val usuarioViewModel = remember { UsuarioViewModel(usuarioRepository) } // CORREGIDO
-                    val loginViewModel = remember { LoginViewModel(usuarioRepository) }     // CORREGIDO
+                    // --- NUEVO: Repositorio del Carrito ---
+                    val carritoRepository = remember { CarritoRepository(dataBase.carritoDao()) }
+
+                    // 3. ViewModels
+                    val usuarioViewModel = remember { UsuarioViewModel(usuarioRepository) }
+                    val loginViewModel = remember { LoginViewModel(usuarioRepository) }
                     val productoViewModel = remember { ProductoViewModel(productoRepository) }
                     val adminViewModel = remember { AdminViewModel(productoRepository) }
 
+                    // --- NUEVO: ViewModel del Carrito ---
+                    val carritoViewModel = remember { CarritoViewModel(carritoRepository) }
+
+
                     val navController = rememberNavController()
 
-                    // NavHost con todas las rutas
+                    // NavHost
                     NavHost(navController = navController, startDestination = "inicio") {
                         composable("inicio") {
                             InicioScreen(
@@ -73,26 +81,34 @@ class MainActivity : ComponentActivity() {
                                 usuarioViewModel = usuarioViewModel
                             )
                         }
+
+                        // --- AQUÍ ESTABA EL ERROR: Faltaban los parámetros nuevos ---
                         composable("catalogo") {
                             CatalogoScreen(
                                 viewModel = productoViewModel,
+                                carritoViewModel = carritoViewModel, // ¡Agregado!
+                                loginViewModel = loginViewModel,     // ¡Agregado!
                                 navController = navController
                             )
                         }
 
-                        // Ruta para el botón de Admin
-                        composable(route = "panelAdmin") {
+                        composable("carrito") {
+                             CarritoScreen(carritoViewModel, navController)
+                        }
+
+                        // Unifiqué tus rutas de admin a una sola ("admin")
+                        composable(route = "admin") {
                             AdminScreen(
                                 viewModel = adminViewModel,
                                 navController = navController
                             )
                         }
 
-                        // Ruta antigua
-                        composable(route = "admin") {
+                        // Ruta alternativa por si algún botón viejo llama a "panelAdmin"
+                        composable(route = "panelAdmin") {
                             AdminScreen(
-                                navController = navController,
-                                viewModel = adminViewModel
+                                viewModel = adminViewModel,
+                                navController = navController
                             )
                         }
 

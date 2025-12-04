@@ -9,10 +9,12 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.milsabores.model.Producto
 import com.example.milsabores.model.Usuario
 
-@Database(entities = [Usuario::class, Producto::class], version = 3)
+@Database(entities = [Usuario::class, Producto::class, Carrito::class], version = 3)
 abstract class MilSaboresDataBase : RoomDatabase(){
+
     abstract fun usuarioDao(): UsuarioDao
     abstract fun productoDao(): ProductoDao
+    abstract fun carritoDao(): CarritoDao
 
     companion object {
         @Volatile
@@ -24,8 +26,6 @@ abstract class MilSaboresDataBase : RoomDatabase(){
             }
         }
 
-        // El DATABASE_CALLBACK para insertar el Admin se ELIMINA de aquí.
-
         fun getDatabase(context: Context): MilSaboresDataBase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -34,7 +34,6 @@ abstract class MilSaboresDataBase : RoomDatabase(){
                     "mil_sabores_db"
                 )
                     .addMigrations(MIGRATION_2_3)
-                    // Se elimina .addCallback(DATABASE_CALLBACK)
                     .build()
                 INSTANCE = instance
                 instance

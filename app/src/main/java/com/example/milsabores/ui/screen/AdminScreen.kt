@@ -1,5 +1,9 @@
 package com.example.milsabores.ui.screen
 
+import android.content.Context
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -14,20 +18,24 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.example.milsabores.model.Producto
 import com.example.milsabores.viewmodel.AdminViewModel
+import java.io.File
+import java.io.FileOutputStream
+import java.io.InputStream
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminScreen(
     navController: NavController,
-    viewModel: AdminViewModel // Asegúrate de inyectar/pasar este ViewModel
+    viewModel: AdminViewModel
 ) {
     val productos by viewModel.productos.collectAsState()
     var mostrarDialogo by remember { mutableStateOf(false) }
@@ -112,6 +120,17 @@ fun ProductoItemRow(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Opcional: Mostrar imagen pequeña en la lista si existe
+            if (producto.imagen.isNotEmpty()) {
+                AsyncImage(
+                    model = producto.imagen,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(50.dp)
+                        .padding(end = 8.dp)
+                )
+            }
+
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = producto.nombre, fontWeight = FontWeight.Bold, color = Color(0xFF7b3f00))
                 Text(text = "$${producto.precio}", style = MaterialTheme.typography.bodyMedium)
@@ -140,6 +159,21 @@ fun ProductoFormDialog(
     var categoria by remember { mutableStateOf(producto?.categoria ?: "") }
     var precioStr by remember { mutableStateOf(producto?.precio?.toString() ?: "") }
     var imagenUrl by remember { mutableStateOf(producto?.imagen ?: "") }
+
+    val context = LocalContext.current
+
+    // --- CONFIGURACIÓN DEL LANZADOR DE GALERÍA ---
+    val launcherGaleria = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            // Guardamos la imagen en la carpeta de la app y obtenemos la nueva ruta
+            val rutaInterna = guardarImagenProductoEnApp(context, it)
+            if (rutaInterna != null) {
+                imagenUrl = rutaInterna
+            }
+        }
+    }
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
@@ -182,13 +216,35 @@ fun ProductoFormDialog(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true
                 )
-                OutlinedTextField(
-                    value = imagenUrl,
-                    onValueChange = { imagenUrl = it },
-                    label = { Text("URL Imagen (http...)") },
-                    placeholder = { Text("Dejar vacío para placeholder") },
-                    singleLine = true
-                )
+
+                // --- SECCIÓN DE IMAGEN ---
+                Text("Imagen", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Button(
+                        onClick = { launcherGaleria.launch("image/*") },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7b3f00)),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
+                        Text("Subir Foto")
+                    }
+
+                    // Previsualización pequeña si hay imagen seleccionada
+                    if (imagenUrl.isNotEmpty()) {
+                        AsyncImage(
+                            model = imagenUrl,
+                            contentDescription = "Preview",
+                            modifier = Modifier
+                                .size(50.dp)
+                        )
+                    }
+                }
+                // --- FIN SECCIÓN IMAGEN ---
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -219,5 +275,27 @@ fun ProductoFormDialog(
                 }
             }
         }
+    }
+}
+
+// Función auxiliar para copiar la imagen seleccionada al almacenamiento interno de la app
+fun guardarImagenProductoEnApp(context: Context, uri: Uri): String? {
+    return try {
+        val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
+        // Creamos un nombre único para la imagen del producto (producto_TIMESTAMP.jpg)
+        val nombreArchivo = "producto_${System.currentTimeMillis()}.jpg"
+        val archivoDestino = File(context.filesDir, nombreArchivo)
+
+        val outputStream = FileOutputStream(archivoDestino)
+        inputStream?.copyTo(outputStream)
+
+        inputStream?.close()
+        outputStream.close()
+
+        // Retornamos la ruta absoluta del archivo guardado
+        archivoDestino.absolutePath
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
     }
 }

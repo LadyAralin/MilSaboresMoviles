@@ -6,6 +6,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,100 +23,157 @@ import androidx.navigation.NavController
 import com.example.milsabores.viewmodel.LoginViewModel
 import com.example.milsabores.R
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InicioScreen(navController: NavController, loginViewModel: LoginViewModel) {
     val usuarioSesion by loginViewModel.usuarioSesion.collectAsState()
 
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        Image(
-            painter = painterResource(id = R.drawable.portada2),
-            contentDescription = "Fondo de la pantalla de inicio",
-            contentScale = ContentScale.Crop,
+    // Usamos el Scaffold del compañero para tener la Barra Superior con Carrito
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Pastelería Mil Sabores") },
+                actions = {
+                    if (usuarioSesion != null) {
+                        IconButton(onClick = { navController.navigate("carrito") }) {
+                            Icon(Icons.Filled.ShoppingCart, contentDescription = "Carrito de compras")
+                        }
+                    }
+                }
+            )
+        }
+    ) { padding ->
+        // Contenido principal dentro del Scaffold
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .alpha(0.7f)
-        )
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(padding)
         ) {
-
-            Box(
+            // Imagen de Fondo
+            Image(
+                painter = painterResource(id = R.drawable.portada2),
+                contentDescription = "Fondo de la pantalla de inicio",
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
-                    .size(150.dp)
-                    .clip(CircleShape)
-                    .background(Color.White)
-                    .border(2.dp, Color(0xFF7b3f00), CircleShape)
-                    .padding(16.dp)
+                    .fillMaxSize()
+                    .alpha(0.7f)
+            )
+
+            // Columna con Logo y Botones
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.logo),
-                    contentDescription = "Logo de PMS",
+
+                // Logo
+                Box(
                     modifier = Modifier
                         .size(150.dp)
                         .clip(CircleShape)
-                )
-            }
-
-            Surface(
-                color = Color(0xFFF4E6D4),
-                shape = RoundedCornerShape(size = 12.dp),
-                modifier = Modifier
-                    .wrapContentSize(Alignment.Center)
-                    .padding(top = 16.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .padding(horizontal = 20.dp, vertical = 20.dp)
+                        .background(Color.White)
+                        .border(2.dp, Color(0xFF7b3f00), CircleShape)
+                        .padding(16.dp)
                 ) {
-                    Text(
-                        text = "Bienvenid@ a Pasteleria Mil Sabores",
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = Color(0xFF7b3f00),
-                        fontSize = 20.sp
+                    Image(
+                        painter = painterResource(id = R.drawable.logo),
+                        contentDescription = "Logo de PMS",
+                        modifier = Modifier
+                            .size(150.dp)
+                            .clip(CircleShape)
                     )
                 }
-            }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            if (usuarioSesion == null) {
-                Button(
-                    onClick = { navController.navigate("login") },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFF4E6D4),
-                        contentColor = Color(0xFF7b3f00)
-                    ),
+                // Texto de Bienvenida
+                Surface(
+                    color = Color(0xFFF4E6D4),
+                    shape = RoundedCornerShape(size = 12.dp),
                     modifier = Modifier
-                        .border(2.dp, Color(0xFF7b3f00), CircleShape),
+                        .wrapContentSize(Alignment.Center)
+                        .padding(top = 16.dp)
                 ) {
-                    Text("Iniciar sesión")
+                    Box(
+                        modifier = Modifier
+                            .padding(horizontal = 20.dp, vertical = 20.dp)
+                    ) {
+                        Text(
+                            text = "Bienvenid@ a Pasteleria Mil Sabores",
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = Color(0xFF7b3f00),
+                            fontSize = 20.sp
+                        )
+                    }
                 }
 
-            } else {
+                Spacer(modifier = Modifier.height(16.dp))
 
-                if (usuarioSesion!!.tipoUsuario == "Admin") {
+                // Lógica de Botones
+                if (usuarioSesion == null) {
+                    // Botón Iniciar Sesión (Si no hay usuario)
                     Button(
-                        onClick = { navController.navigate("panelAdmin") },
+                        onClick = { navController.navigate("login") },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF7b3f00),
-                            contentColor = Color(0xFFF4E6D4)
+                            containerColor = Color(0xFFF4E6D4),
+                            contentColor = Color(0xFF7b3f00)
                         ),
                         modifier = Modifier
                             .border(2.dp, Color(0xFF7b3f00), CircleShape),
                     ) {
-                        Text("Panel de Administración")
+                        Text("Iniciar sesión")
                     }
+
+                } else {
+                    // Opciones si hay usuario conectado
+
+                    // --- AQUÍ INTEGRÉ TU BOTÓN DE ADMIN ---
+                    if (usuarioSesion?.tipoUsuario == "Admin") {
+                        Button(
+                            onClick = { navController.navigate("admin") }, // Ruta corregida a "admin"
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF7b3f00),
+                                contentColor = Color(0xFFF4E6D4)
+                            ),
+                            modifier = Modifier.border(2.dp, Color(0xFF7b3f00), CircleShape),
+                        ) {
+                            Text("Panel de Administración")
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                    // --------------------------------------
+
+                    Button(
+                        onClick = { navController.navigate("perfil/${usuarioSesion!!.id}") },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFF4E6D4),
+                            contentColor = Color(0xFF7b3f00)
+                        ),
+                        modifier = Modifier
+                            .border(2.dp, Color(0xFF7b3f00), CircleShape),
+                    ) {
+                        Text("Ver perfil")
+                    }
+
                     Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedButton(
+                        onClick = { loginViewModel.cerrarSesion() },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFF4E6D4),
+                            contentColor = Color(0xFF7b3f00)
+                        ),
+                        modifier = Modifier
+                            .border(2.dp, Color(0xFF7b3f00), CircleShape),
+                    ) {
+                        Text("Cerrar sesión")
+                    }
                 }
+
+                Spacer(modifier = Modifier.height(16.dp))
 
                 Button(
-                    onClick = { navController.navigate("perfil/${usuarioSesion!!.id}") },
+                    onClick = { navController.navigate("catalogo") },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFFF4E6D4),
                         contentColor = Color(0xFF7b3f00)
@@ -122,34 +181,8 @@ fun InicioScreen(navController: NavController, loginViewModel: LoginViewModel) {
                     modifier = Modifier
                         .border(2.dp, Color(0xFF7b3f00), CircleShape),
                 ) {
-                    Text("Ver perfil")
+                    Text("Ir al catálogo")
                 }
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedButton(
-                    onClick = { loginViewModel.cerrarSesion() },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFF4E6D4),
-                        contentColor = Color(0xFF7b3f00)
-                    ),
-                    modifier = Modifier
-                        .border(2.dp, Color(0xFF7b3f00), CircleShape),
-                ) {
-                    Text("Cerrar sesión")
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Button(
-                onClick = { navController.navigate("catalogo") },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFF4E6D4),
-                    contentColor = Color(0xFF7b3f00)
-                ),
-                modifier = Modifier
-                    .border(2.dp, Color(0xFF7b3f00), CircleShape),
-            ) {
-                Text("Ir al catálogo")
             }
         }
     }
