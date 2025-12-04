@@ -30,6 +30,7 @@ import com.example.milsabores.viewmodel.ProductoViewModel
 @Composable
 fun CatalogoScreen(viewModel: ProductoViewModel, navController: NavController? = null) {
     val productos by viewModel.productos.collectAsState()
+    val searchText by viewModel.searchText.collectAsState()
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -48,9 +49,38 @@ fun CatalogoScreen(viewModel: ProductoViewModel, navController: NavController? =
         modifier = Modifier
             .fillMaxSize()
             .padding(WindowInsets.safeDrawing.asPaddingValues())
-            .padding(8.dp), // margen interno adicional
+            .padding(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // --- NUEVO: BARRA DE BÚSQUEDA ---
+        OutlinedTextField(
+            value = searchText,
+            onValueChange = { viewModel.onSearchTextChange(it) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
+            placeholder = { Text("Buscar pastel, sabor...") },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = "Buscar",
+                    tint = Color(0xFF7b3f00)
+                )
+            },
+            singleLine = true,
+            shape = RoundedCornerShape(24.dp), // Bordes redondeados estilo buscador
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Color(0xFF7b3f00),
+                unfocusedBorderColor = Color(0xFF7b3f00).copy(alpha = 0.5f),
+                cursorColor = Color(0xFF7b3f00),
+                focusedLabelColor = Color(0xFF7b3f00)
+            )
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
 
 
         // --- Catálogo (arriba) ---

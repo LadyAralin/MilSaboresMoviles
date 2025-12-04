@@ -55,7 +55,6 @@ class ProductoRepository(private val productoDao: ProductoDao) {
 
         val productosApi = obtenerProductosDeApi()
 
-        // Recorremos la lista de la API y los guardamos en tu base de datos
         productosApi.forEach { productoApi ->
             productoDao.insertar(productoApi)
         }
